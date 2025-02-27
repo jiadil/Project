@@ -1,0 +1,15 @@
+runtime: php81
+entrypoint: serve controller.php
+
+handlers:
+- url: /project/query.php
+  script: project/query.php
+
+- url: /check-connection.php
+  script: check-connection.php
+
+env_variables:
+  CLOUD_SQL_CONNECTION_NAME: "db-002319129:us-west1:neu-test-jiadil"
+  DB_USER: "5200"
+  DB_PASS: "000000"
+  DB_NAME: "CS5200Project"

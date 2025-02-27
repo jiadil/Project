@@ -1,0 +1,14 @@
+# Ignore system and unnecessary files
+*.log
+*.DS_Store
+.env
+config.php
+
+# Ignore XAMPP files
+xamppfiles/
+bin/
+cgi-bin/
+etc/
+logs/
+manager-osx.app
+uninstall.app
