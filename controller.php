@@ -11,9 +11,15 @@ if (preg_match($regex, $_SERVER['REQUEST_URI'], $matches)) {
         require($file_path);
         return;
     }
+    
+    // Also check in the strata folder
+    $strata_path = __DIR__ . '/strata' . $matches[0];
+    if (file_exists($strata_path)) {
+        require($strata_path);
+        return;
+    }
 }
 
 http_response_code(404);
 exit('Not Found');
-
 ?>

@@ -25,7 +25,7 @@ function OpenCon()
         $conn = new mysqli($dbhost, $dbuser, $dbpass, $db, null, $dbsocket);
     } else {
         // ✅ Running locally
-        $use_gcp_proxy = true; // Toggle this if you want local MySQL instead
+        $use_gcp_proxy = false; // Toggle this if you want local MySQL instead
 
         if ($use_gcp_proxy) {
             // 🔹 Local Machine using Cloud SQL Proxy (127.0.0.1:3307)

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-gH2yIJqKdNHPEq0n4Mqa/HGKIhSkIHeL5AyhkYV8i59U5AR6csBvApHHNl/vI1Bx" crossorigin="anonymous">
+    <title>Prepare Financial Statement</title>
+</head>
+<body>
+    <?php
+    session_start();
+    
+    // Check if staff is logged in and is an accountant
+    if (!isset($_SESSION['staff_logged_in']) || $_SESSION['staff_logged_in'] !== true || $_SESSION['staff_role'] !== 'accountant') {
+        header("Location: staff-login.php");
+        exit();
+    }
+    
+    // Get the property ID from the URL
+    $propertyID = isset($_GET['propertyID']) ? $_GET['propertyID'] : 0;
+    $sinNum = $_SESSION['staff_id'];
+    
+    include("../../connect.php");
+    $conn = OpenCon();
+    
+    // Get property information
+    $propertyInfo = $conn->prepare("SELECT * FROM Property_AssignTo WHERE propertyID = ?");
+    $propertyInfo->bind_param("i", $propertyID);
+    $propertyInfo->execute();
+    $propertyResult = $propertyInfo->get_result();
+    $propertyData = $propertyResult->fetch_assoc();
+    
+    // Check if property exists
+    if (!$propertyData) {
+        echo '<div class="container mt-5">
+                <div class="alert alert-danger" role="alert">
+                    Property not found.
+                </div>
+                <a href="staff-viewer.php" class="btn btn-primary">Back to Portal</a>
+              </div>';
+        exit();
+    }
+    
+    // Get the latest financial data for this property
+    $latestFinancial = $conn->prepare("SELECT * FROM FinancialStatements_Has WHERE propertyID = ? ORDER BY cdate DESC LIMIT 1");
+    $latestFinancial->bind_param("i", $propertyID);
+    $latestFinancial->execute();
+    $latestFinancialResult = $latestFinancial->get_result();
+    $latestFinancialData = $latestFinancialResult->fetch_assoc();
+    
+    // Default values
+    $lastCash = isset($latestFinancialData['cash']) ? $latestFinancialData['cash'] : 0;
+    $lastDebt = isset($latestFinancialData['debt']) ? $latestFinancialData['debt'] : 0;
+    
+    // Current date in MM/DD/YYYY format
+    $currentDate = date("m/d/Y");
+    
+    // Check if a statement for today exists and if it's already prepared by another accountant
+    $checkToday = $conn->prepare("SELECT f.statementID, p.sinNum 
+                                  FROM FinancialStatements_Has f 
+                                  LEFT JOIN prepared p ON f.statementID = p.statementID 
+                                  WHERE f.propertyID = ? AND f.cdate = ?");
+    $checkToday->bind_param("is", $propertyID, $currentDate);
+    $checkToday->execute();
+    $checkResult = $checkToday->get_result();
+    $statementExists = false;
+    $preparedByOther = false;
+    $existingStatementID = null;
+    
+    if ($checkResult->num_rows > 0) {
+        $statementData = $checkResult->fetch_assoc();
+        $statementExists = true;
+        $existingStatementID = $statementData['statementID'];
+        
+        // Check if prepared by another accountant
+        if ($statementData['sinNum'] && $statementData['sinNum'] != $sinNum) {
+            $preparedByOther = true;
+        }
+    }
+    ?>
+    
+    <div class="container mt-5">
+        <h2>Prepare Financial Statement</h2>
+        
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h4><?php echo $propertyData['propertyName']; ?></h4>
+            </div>
+            <div class="card-body">
+                <p><strong>Property ID:</strong> <?php echo $propertyData['propertyID']; ?></p>
+                <p><strong>Location:</strong> <?php echo $propertyData['location']; ?></p>
+                
+                <?php if ($preparedByOther): ?>
+                <div class="alert alert-warning">
+                    <p>A financial statement for today's date has already been prepared by another accountant.</p>
+                    <a href="property-detail.php?propertyID=<?php echo $propertyID; ?>" class="btn btn-primary">Back to Property Details</a>
+                </div>
+                <?php return; endif; ?>
+                
+                <?php if ($latestFinancialData): ?>
+                <div class="alert alert-info">
+                    <h5>Latest Financial Data (<?php echo $latestFinancialData['cdate']; ?>)</h5>
+                    <p><strong>Cash:</strong> $<?php echo $latestFinancialData['cash']; ?></p>
+                    <p><strong>Debt:</strong> $<?php echo $latestFinancialData['debt']; ?></p>
+                    <p><strong>Balance:</strong> $<?php echo $latestFinancialData['cash'] - $latestFinancialData['debt']; ?></p>
+                </div>
+                <?php else: ?>
+                <div class="alert alert-warning">
+                    No previous financial data available for this property.
+                </div>
+                <?php endif; ?>
+                
+                <form action="process-statement.php" method="POST">
+                    <input type="hidden" name="propertyID" value="<?php echo $propertyID; ?>">
+                    <input type="hidden" name="sinNum" value="<?php echo $sinNum; ?>">
+                    <input type="hidden" name="cdate" value="<?php echo $currentDate; ?>">
+                    <?php if ($statementExists): ?>
+                    <input type="hidden" name="statementID" value="<?php echo $existingStatementID; ?>">
+                    <?php endif; ?>
+                    
+                    <div class="mb-3">
+                        <label for="cash" class="form-label">Cash Amount ($)</label>
+                        <input type="number" class="form-control" id="cash" name="cash" value="<?php echo $lastCash; ?>" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="debt" class="form-label">Debt Amount ($)</label>
+                        <input type="number" class="form-control" id="debt" name="debt" value="<?php echo $lastDebt; ?>" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="summary" class="form-label">Summary Amount ($)</label>
+                        <input type="number" class="form-control" id="summary" name="summary" required>
+                        <div class="form-text">This is your professional assessment of the property's financial health</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="pstatus" class="form-label">Status</label>
+                        <select class="form-select" id="pstatus" name="pstatus" required>
+                            <option value="in progress">In Progress</option>
+                            <option value="completed">Completed</option>
+                        </select>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success">Submit Financial Statement</button>
+                        <a href="property-detail.php?propertyID=<?php echo $propertyID; ?>" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-A3rJD856KowSb7dwlZdYEkO39Gagi7vIsF0jrRAoQmDKKtQBHUuLZ9AsSv4jD4Xa" crossorigin="anonymous"></script>
+</body>
+</html>
+<?php CloseCon($conn); ?>
