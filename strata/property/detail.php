@@ -1,3 +1,7 @@
+<?php
+session_start();
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -13,8 +17,6 @@
     <a class="navbar-brand" href="/strata/check-connection.php">Home</a>
     <a class="navbar-brand" href="/strata/display/dashboard.php">Dashboard</a>
     <?php
-    // Check if the user is logged in as an owner
-    session_start();
     if (!isset($_SESSION['owner_logged_in']) || $_SESSION['owner_logged_in'] !== true) {
         // Only show "Back to all properties" if NOT logged in as an owner
         echo '<a class="navbar-brand" href="/strata/property/property.php">Back to all properties</a>';
@@ -28,7 +30,7 @@
 <body class="d-flex flex-column">
 
     <?php
-    include '../connect.php';
+    include($_SERVER['DOCUMENT_ROOT'] . "/strata/connect.php");
     $id = $_GET['propertyID'];
     $conn = OpenCon();
     $result = $conn->query("SELECT propertyID, propertyName, location, companyID 
@@ -52,12 +54,10 @@
         JOIN FinancialStatements_Has f 
         ON p.statementID = f.statementID
         WHERE f.propertyID = $id");
-    $statE = $conn->query("SELECT repairevent_undergoes.eventNum, repairevent_undergoes.eventName, arrange.budget, repairevent_undergoes.cost, arrange.astatus
-        FROM `repairevent_undergoes`
-        JOIN `arrange`
-        ON repairevent_undergoes.eventNum = arrange.eventNum AND repairevent_undergoes.propertyID = arrange.propertyID
-        WHERE arrange.propertyID = $id
-        GROUP BY arrange.propertyID");
+    $statE = $conn->query("SELECT r.eventNum, r.eventName, a.budget, r.cost, a.astatus
+        FROM RepairEvent_Undergoes r
+        JOIN Arrange a ON r.eventNum = a.eventNum AND r.propertyID = a.propertyID
+        WHERE a.propertyID = '$id'");
     
     // Add owner query
     $ownerQuery = $conn->query("SELECT o.ownerID, o.name, o.phoneNum, o.emailAddress, h.startDate 
@@ -327,7 +327,7 @@
 </body>
 
 <?php
-include("../display/footer.php");
+include($_SERVER['DOCUMENT_ROOT'] . "/strata/display/footer.php");
 ?>
 
 </html>

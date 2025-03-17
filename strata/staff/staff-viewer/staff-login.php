@@ -1,3 +1,7 @@
+<?php
+session_start();
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -22,7 +26,7 @@
                     <h5 class="card-title">Staff Login</h5>
                     
                     <?php
-                    session_start();
+
                     
                     // Display error message if any
                     if (isset($_SESSION['staff_login_error'])) {
@@ -33,8 +37,8 @@
                     
                     <form action="process-staff-login.php" method="POST">
                         <div class="mb-3 text-start">
-                            <label for="sinNum" class="form-label">SIN Number</label>
-                            <input type="text" class="form-control" id="sinNum" name="sinNum" pattern="\d+" title="SIN Number must contain only numbers" required>
+                            <label for="sinNum" class="form-label">SSN Number</label>
+                            <input type="text" class="form-control" id="sinNum" name="sinNum" pattern="\d+" title="SSN Number must contain only numbers" required>
                         </div>
                         <div class="mb-3 text-start">
                             <label for="passkey" class="form-label">Password</label>

@@ -8,7 +8,7 @@
             </ul>
         </div>
         <div class="mx-auto order-0">
-            <a class="navbar-brand mx-auto" href="/phpmyadmin/index.php?route=/database/structure&db=strata">SQL Database</a>
+            <a class="navbar-brand mx-auto" href="https://console.cloud.google.com/sql/instances/neu-test-jiadil/overview?project=db-002319129">SQL Database</a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target=".dual-collapse2">
                 <span class="navbar-toggler-icon"></span>
             </button>

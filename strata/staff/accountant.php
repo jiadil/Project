@@ -22,7 +22,7 @@
 <body class="d-flex flex-column">
 
     <?php
-    include '../connect.php';
+    include($_SERVER['DOCUMENT_ROOT'] . "/strata/connect.php");
     $conn = OpenCon();
     $sort = $conn->query("SELECT Accountant.sinNum, Accountant.CPALicenseNum, Accountant.expirationDate, Staff.name
             FROM Accountant
@@ -81,7 +81,7 @@
 </body>
 
 <?php
-include("../display/footer.php");
+include($_SERVER['DOCUMENT_ROOT'] . "/strata/display/footer.php");
 ?>
 
 </html>

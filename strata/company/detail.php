@@ -16,7 +16,7 @@
 
 <body>
     <?php
-    include '../connect.php';
+    include($_SERVER['DOCUMENT_ROOT'] . "/strata/connect.php");
     $id = $_GET['companyID'];
     $conn = OpenCon();
     $com = $conn->query("SELECT companyID, name, address 
@@ -183,7 +183,7 @@
 </body>
 
 <?php
-include("../display/footer.php");
+include($_SERVER['DOCUMENT_ROOT'] . "/strata/display/footer.php");
 ?>
 
 </html>

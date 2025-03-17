@@ -1,3 +1,13 @@
+<?php
+session_start();
+
+// Display error message if any
+if (isset($_SESSION['owner_login_error'])) {
+    echo '<div class="alert alert-danger" role="alert">' . $_SESSION['owner_login_error'] . '</div>';
+    unset($_SESSION['owner_login_error']);
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -21,15 +31,7 @@
                 <div class="card-body text-center d-flex flex-column">
                     <h5 class="card-title">Owner Login</h5>
                     
-                    <?php
-                    session_start();
                     
-                    // Display error message if any
-                    if (isset($_SESSION['owner_login_error'])) {
-                        echo '<div class="alert alert-danger" role="alert">' . $_SESSION['owner_login_error'] . '</div>';
-                        unset($_SESSION['owner_login_error']);
-                    }
-                    ?>
                     
                     <form action="process-owner-login.php" method="POST">
                         <div class="mb-3 text-start">

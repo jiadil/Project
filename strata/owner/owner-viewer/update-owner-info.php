@@ -1,3 +1,30 @@
+<?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+session_start();
+
+// Check if owner is logged in
+if (!isset($_SESSION['owner_logged_in']) || $_SESSION['owner_logged_in'] !== true) {
+    header("Location: owner-login.php");
+    exit();
+}
+
+// Get owner ID from session and verify it matches URL parameter
+$sessionOwnerID = $_SESSION['owner_id'];
+$urlOwnerID = $_GET['ownerID'];
+
+if ($sessionOwnerID != $urlOwnerID) {
+    // Security check failed
+    echo '<div class="container mt-5"><div class="alert alert-danger">You can only update your own information.</div></div>';
+    exit();
+}
+
+$name = $_GET['name'];
+$phoneNum = $_GET['phoneNum'];
+$emailAddress = $_GET['emailAddress'];
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -16,32 +43,7 @@
 
 <body class="d-flex flex-column">
 
-    <?php
-    error_reporting(E_ALL);
-    ini_set('display_errors', 1);
-
-    session_start();
-
-    // Check if owner is logged in
-    if (!isset($_SESSION['owner_logged_in']) || $_SESSION['owner_logged_in'] !== true) {
-        header("Location: owner-login.php");
-        exit();
-    }
-
-    // Get owner ID from session and verify it matches URL parameter
-    $sessionOwnerID = $_SESSION['owner_id'];
-    $urlOwnerID = $_GET['ownerID'];
-
-    if ($sessionOwnerID != $urlOwnerID) {
-        // Security check failed
-        echo '<div class="container mt-5"><div class="alert alert-danger">You can only update your own information.</div></div>';
-        exit();
-    }
-
-    $name = $_GET['name'];
-    $phoneNum = $_GET['phoneNum'];
-    $emailAddress = $_GET['emailAddress'];
-    ?>
+    
 
     <div class="container mt-5 mb-5">
         <div class="row">
@@ -86,7 +88,7 @@
 </body>
 
 <?php
-include("../../display/footer.php");
+include($_SERVER['DOCUMENT_ROOT'] . "/strata/display/footer.php");
 ?>
 
 </html>

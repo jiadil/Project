@@ -1,3 +1,7 @@
+<?php
+session_start();
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,7 +14,6 @@
 <body>
     <div class="container mt-5">
         <?php
-        session_start();
         
         // Check if staff is logged in and is an accountant
         if (!isset($_SESSION['staff_logged_in']) || $_SESSION['staff_logged_in'] !== true || $_SESSION['staff_role'] !== 'accountant') {
@@ -20,7 +23,7 @@
         
         // Process the form submission
         if ($_SERVER["REQUEST_METHOD"] == "POST") {
-            include("../../connect.php");
+            include($_SERVER['DOCUMENT_ROOT'] . "/strata/connect.php");
             $conn = OpenCon();
             
             // Get form data

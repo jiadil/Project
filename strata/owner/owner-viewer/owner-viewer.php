@@ -1,3 +1,39 @@
+<?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+session_start();
+
+// Check if owner is logged in
+if (!isset($_SESSION['owner_logged_in']) || $_SESSION['owner_logged_in'] !== true) {
+    header("Location: owner-login.php");
+    exit();
+}
+
+// Get owner ID from session
+$ownerID = $_SESSION['owner_id'];
+
+include($_SERVER['DOCUMENT_ROOT'] . "/strata/connect.php");
+$conn = OpenCon();
+
+// Get owner information
+$ownerInfo = $conn->query("SELECT ownerID, phoneNum, name, emailAddress FROM Owner WHERE ownerID = $ownerID");
+$ownerData = $ownerInfo->fetch_assoc();
+
+// Get owner's properties
+$properties = $conn->query("SELECT p.propertyID, p.propertyName, p.location, h.startDate 
+                            FROM Property_AssignTo p 
+                            JOIN HasOwnershipOf h ON p.propertyID = h.propertyID 
+                            WHERE h.ownerID = $ownerID");
+
+// Get council meetings for this owner
+$council = $conn->query("SELECT Holds.meetingID, Holds.duration, Holds.outcome, CouncilMeeting.cdate, CouncilMeeting.location
+                        FROM Holds
+                        INNER JOIN CouncilMeeting ON Holds.meetingID = CouncilMeeting.meetingID
+                        WHERE Holds.ownerID = $ownerID
+                        ORDER BY meetingID");
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -10,7 +46,7 @@
 </head>
 
 <nav id="navbar-example2" class="navbar navbar-light bg-light px-3 sticky-top">
-    <a class="navbar-brand" href="/strata/check-connection.php">Home</a>
+    <a class="navbar-brand" href="/strata/logout.php">Home</a>
     <ul class="nav nav-pills">
         <li class="nav-item">
             <a class="nav-link" href="#scrollspyHeading1">My Information</a>
@@ -29,41 +65,7 @@
 
 <body class="d-flex flex-column">
 
-    <?php
-    error_reporting(E_ALL);
-    ini_set('display_errors', 1);
-
-    session_start();
-
-    // Check if owner is logged in
-    if (!isset($_SESSION['owner_logged_in']) || $_SESSION['owner_logged_in'] !== true) {
-        header("Location: owner-login.php");
-        exit();
-    }
-
-    // Get owner ID from session
-    $ownerID = $_SESSION['owner_id'];
-
-    include("../../connect.php");
-    $conn = OpenCon();
-
-    // Get owner information
-    $ownerInfo = $conn->query("SELECT ownerID, phoneNum, name, emailAddress FROM Owner WHERE ownerID = $ownerID");
-    $ownerData = $ownerInfo->fetch_assoc();
-
-    // Get owner's properties
-    $properties = $conn->query("SELECT p.propertyID, p.propertyName, p.location, h.startDate 
-                               FROM Property_AssignTo p 
-                               JOIN HasOwnershipOf h ON p.propertyID = h.propertyID 
-                               WHERE h.ownerID = $ownerID");
-
-    // Get council meetings for this owner
-    $council = $conn->query("SELECT Holds.meetingID, Holds.duration, Holds.outcome, CouncilMeeting.cdate, CouncilMeeting.location
-                            FROM Holds
-                            INNER JOIN CouncilMeeting ON Holds.meetingID = CouncilMeeting.meetingID
-                            WHERE Holds.ownerID = $ownerID
-                            ORDER BY meetingID");
-    ?>
+    
 
     <div data-bs-spy="scroll" data-bs-target="#navbar-example2" data-bs-offset="0" class="scrollspy-example container" tabindex="0">
         <div class="row mx-auto mt-5 mb-5">
@@ -167,7 +169,7 @@
 </body>
 
 <?php
-include("../../display/footer.php");
+include($_SERVER['DOCUMENT_ROOT'] . "/strata/display/footer.php");
 CloseCon($conn);
 ?>
 

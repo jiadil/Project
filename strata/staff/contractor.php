@@ -25,17 +25,17 @@
 <body class="d-flex flex-column">
 
     <?php
-    include '../connect.php';
+    include($_SERVER['DOCUMENT_ROOT'] . "/strata/connect.php");
     $conn = OpenCon();
     $sort = $conn->query("SELECT Contractor.sinNum, Contractor.contractorLicenseNum, Contractor.expirationDate, Staff.name
         FROM Contractor
         JOIN Staff ON Contractor.sinNum = Staff.sinNum");
-    $repairList = $conn->query("SELECT staff.name, repairevent_undergoes.propertyID, repairevent_undergoes.eventNum, repairevent_undergoes.eventName, arrange.budget, repairevent_undergoes.cost, arrange.astatus
-        FROM (`repairevent_undergoes`JOIN`arrange`
-        ON repairevent_undergoes.eventNum = arrange.eventNum AND repairevent_undergoes.propertyID = arrange.propertyID) 
-        JOIN staff 
-        ON arrange.sinNum = staff.sinNum
-        ORDER BY repairevent_undergoes.propertyID");
+    $repairList = $conn->query("SELECT s.name, r.propertyID, r.eventNum, r.eventName, a.budget, r.cost, a.astatus
+        FROM RepairEvent_Undergoes r
+        JOIN Arrange a ON r.eventNum = a.eventNum 
+                        AND r.propertyID = a.propertyID
+        JOIN Staff s ON a.sinNum = s.sinNum
+        ORDER BY r.propertyID");
     ?>
 
     <div data-bs-spy="scroll" data-bs-target="#navbar-example2" data-bs-offset="0" class="scrollspy-example container" tabindex="0">
@@ -127,7 +127,7 @@
 </body>
 
 <?php
-include("../display/footer.php");
+include($_SERVER['DOCUMENT_ROOT'] . "/strata/display/footer.php");
 ?>
 
 </html>

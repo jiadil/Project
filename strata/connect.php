@@ -16,6 +16,8 @@ function OpenCon()
 
     if ($on_gcp) {
         // ✅ Running on Google App Engine - Use Unix socket for Cloud SQL
+        // echo "<script>console.log('✅ Connecting to Cloud SQL on Google App Engine');</script>";
+
         $dbhost = null; // App Engine uses Unix socket instead of IP
         $dbsocket = "/cloudsql/db-002319129:us-west1:neu-test-jiadil"; // Replace with your Cloud SQL connection name
         $dbuser = "5200";    // Change to match Cloud SQL user
@@ -25,16 +27,20 @@ function OpenCon()
         $conn = new mysqli($dbhost, $dbuser, $dbpass, $db, null, $dbsocket);
     } else {
         // ✅ Running locally
-        $use_gcp_proxy = false; // Toggle this if you want local MySQL instead
+        $use_gcp_proxy = true; // Toggle this if you want local MySQL instead
 
         if ($use_gcp_proxy) {
             // 🔹 Local Machine using Cloud SQL Proxy (127.0.0.1:3307)
+            // echo "<script>console.log('🔹 Connecting to Cloud SQL via Proxy on Local Machine');</script>";
+
             $dbhost = "127.0.0.1";  
             $dbport = "3307";        
             $dbuser = "5200";
             $dbpass = "000000";
         } else {
             // 🔹 Local XAMPP MySQL (localhost:3306)
+            // echo "<script>console.log('🔹 Connecting to Local MySQL Server (XAMPP)');</script>";
+
             $dbhost = "localhost";
             $dbport = "3306";
             $dbuser = "root";
@@ -47,6 +53,7 @@ function OpenCon()
 
     // Check connection
     if ($conn->connect_error) {
+        // echo "<script>console.error('❌ Database connection failed: " . addslashes($conn->connect_error) . "');</script>";
         die("Connection failed: " . $conn->connect_error);
     }
 

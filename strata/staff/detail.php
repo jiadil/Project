@@ -17,7 +17,7 @@
 
 <body>
     <?php
-    include '../connect.php';
+    include($_SERVER['DOCUMENT_ROOT'] . "/strata/connect.php");
     $sinNum = $_GET['sinNum'];
     $conn = OpenCon();
     

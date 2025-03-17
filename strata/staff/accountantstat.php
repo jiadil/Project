@@ -17,7 +17,7 @@
 
 <body>
     <?php
-    include '../connect.php';
+    include($_SERVER['DOCUMENT_ROOT'] . "/strata/connect.php");
     $id = $_GET['sinNum'];
     $conn = OpenCon();
     
@@ -117,7 +117,7 @@
 </body>
 
 <?php
-include("../display/footer.php");
+include($_SERVER['DOCUMENT_ROOT'] . "/strata/display/footer.php");
 ?>
 
 </html>

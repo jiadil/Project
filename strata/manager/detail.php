@@ -17,7 +17,7 @@
 
 <body>
     <?php
-    include '../connect.php';
+    include($_SERVER['DOCUMENT_ROOT'] . "/strata/connect.php");
     $id = $_GET['licenseNum'];
     $conn = OpenCon();
     $manager = $conn->query("SELECT licenseNum, phoneNum, name, companyID
@@ -149,7 +149,7 @@
 </body>
 
 <?php
-include("../display/footer.php");
+include($_SERVER['DOCUMENT_ROOT'] . "/strata/display/footer.php");
 ?>
 
 </html>

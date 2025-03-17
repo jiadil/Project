@@ -37,7 +37,7 @@
 <body class="d-flex flex-column">
 
     <?php
-    include '../connect.php';
+    include($_SERVER['DOCUMENT_ROOT'] . "/strata/connect.php");
     $conn = OpenCon();
     $result = $conn->query("SELECT licenseNum, companyID, name, phoneNum FROM StrataManager_Work");
     $com = $conn->query("SELECT companyID FROM StrataManagementCompany");
@@ -47,7 +47,7 @@
     $council = $conn->query("SELECT Monitor.meetingID, Monitor.cstatus, Monitor.announcement, Monitor.ownerID, CouncilMeeting.cdate, CouncilMeeting.location
         FROM Monitor
         JOIN CouncilMeeting ON CouncilMeeting.meetingID = Monitor.meetingID");
-    $result2 = $conn->query("SELECT ownerID, phoneNum, name FROM owner");
+    $result2 = $conn->query("SELECT ownerID, phoneNum, name FROM Owner");
     ?>
 
     <div data-bs-spy="scroll" data-bs-target="#navbar-example2" data-bs-offset="0" class="scrollspy-example container" tabindex="0">
@@ -203,45 +203,7 @@
             </div>
 
 
-            <!-- Show List Drop down -->
-
-            <h4 id="scrollspyHeading5">Owner List</h4>
-            <div class="mt-4 mb-5">
-                <div class="container-fluid mb-3">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <select id="owner" class="form-select">
-                                <option value="none" selected disabled hidden>Select owner name</option>
-                                <option>All</option>
-                                <?php
-                                while ($rows = mysqli_fetch_array($result2)) {
-                                ?>
-                                    <option value=" <?php echo $rows['name']; ?>"> <?php echo $rows['name']; ?> </option>
-                                <?php
-                                }
-                                ?>
-                            </select>
-                        </div>
-                        <div class="col-md-6" onclick="selectOwner()">
-                            <button class="btn btn-primary" type="button">Go</button>
-                        </div>
-                    </div>
-                </div>
-
-                <table class="table table-hover text-center">
-                    <thead class="table-light">
-                        <tr>
-                            <th scope="col">OwnerID</th>
-                            <th scope="col">Name</th>
-                            <th scope="col">Phone Number</th>
-                            <th scope="col">Email Address</th>
-                            <th scope="col"> </th>
-                        </tr>
-                    </thead>
-                    <tbody id="ans">
-                    </tbody>
-                </table>
-            </div>
+            
             <?php
             CloseCon($conn);
             ?>
@@ -257,7 +219,7 @@
 </body>
 
 <?php
-include("../display/footer.php");
+include($_SERVER['DOCUMENT_ROOT'] . "/strata/display/footer.php");
 ?>
 
 </html>

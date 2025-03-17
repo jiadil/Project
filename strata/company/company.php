@@ -24,7 +24,7 @@
 <body class="d-flex flex-column">
 
     <?php
-    include '../connect.php';
+    include($_SERVER['DOCUMENT_ROOT'] . "/strata/connect.php");
     $conn = OpenCon();
     $sql = "SELECT companyID, name, address FROM StrataManagementCompany";
     $result = $conn->query($sql);
@@ -106,7 +106,7 @@
 </body>
 
 <?php
-include("../display/footer.php");
+include($_SERVER['DOCUMENT_ROOT'] . "/strata/display/footer.php");
 ?>
 
 </html>

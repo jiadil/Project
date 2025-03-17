@@ -18,7 +18,7 @@
 <body class="d-flex flex-column">
 
     <?php
-    include '../connect.php';
+    include($_SERVER['DOCUMENT_ROOT'] . "/strata/connect.php");
     $id = $_GET['ownerID'];
     $conn = OpenCon();
     $result = $conn->query("SELECT ownerID, phoneNum, name, emailAddress 
@@ -150,7 +150,7 @@
 </body>
 
 <?php
-include("../display/footer.php");
+include($_SERVER['DOCUMENT_ROOT'] . "/strata/display/footer.php");
 ?>
 
 </html>

@@ -1,3 +1,7 @@
+<?php
+session_start();
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,8 +13,6 @@
 </head>
 <body>
     <?php
-    session_start();
-    
     // Check if staff is logged in and is an accountant
     if (!isset($_SESSION['staff_logged_in']) || $_SESSION['staff_logged_in'] !== true || $_SESSION['staff_role'] !== 'accountant') {
         header("Location: staff-login.php");
@@ -21,7 +23,7 @@
     $propertyID = isset($_GET['propertyID']) ? $_GET['propertyID'] : 0;
     $sinNum = $_SESSION['staff_id'];
     
-    include("../../connect.php");
+    include($_SERVER['DOCUMENT_ROOT'] . "/strata/connect.php");
     $conn = OpenCon();
     
     // Get property information

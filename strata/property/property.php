@@ -39,7 +39,7 @@
 <body class="d-flex flex-column">
 
     <?php
-    include '../connect.php';
+    include($_SERVER['DOCUMENT_ROOT'] . "/strata/connect.php");
     $conn = OpenCon();
     $result = $conn->query("SELECT propertyID, propertyName, location, companyID FROM Property_AssignTo");
     $result2 = $conn->query("SELECT companyID FROM StrataManagementCompany");
@@ -65,81 +65,71 @@
             JOIN FinancialStatements_Has f 
             ON p.statementID = f.statementID
             GROUP BY p.pstatus");
-    $repairList = $conn->query("SELECT staff.name, repairevent_undergoes.propertyID, repairevent_undergoes.eventNum, repairevent_undergoes.eventName, arrange.budget, repairevent_undergoes.cost, arrange.astatus
-        FROM (`repairevent_undergoes`JOIN`arrange`
-        ON repairevent_undergoes.eventNum = arrange.eventNum AND repairevent_undergoes.propertyID = arrange.propertyID) 
-        JOIN staff 
-        ON arrange.sinNum = staff.sinNum
-        ORDER BY repairevent_undergoes.propertyID");
-    $aggStatmentsC = $conn->query("SELECT 
-            pa.propertyID, 
-            pa.propertyName,
-            'completed' as pstatus,
-            SUM(f.cash) as total_cash, 
-            SUM(f.debt) as total_debt, 
-            SUM(p.summary) as total_summary
-        FROM 
-            Property_AssignTo pa
-        JOIN FinancialStatements_Has f ON pa.propertyID = f.propertyID
-        JOIN prepared p ON f.statementID = p.statementID
-        WHERE 
-            NOT EXISTS (
-                SELECT 1
-                FROM prepared p2
-                JOIN FinancialStatements_Has f2 ON p2.statementID = f2.statementID
-                WHERE f2.propertyID = pa.propertyID
-                AND p2.pstatus != 'completed'
-            )
-        GROUP BY 
-            pa.propertyID, 
-            pa.propertyName, 
-            pstatus
-        ORDER BY 
-            pa.propertyID");
+    $repairList = $conn->query("SELECT s.name, r.propertyID, r.eventNum, r.eventName, a.budget, r.cost, a.astatus
+            FROM RepairEvent_Undergoes r
+            JOIN Arrange a ON r.eventNum = a.eventNum AND r.propertyID = a.propertyID
+            JOIN Staff s ON a.sinNum = s.sinNum
+            ORDER BY r.propertyID");
+    $aggStatmentsC = $conn->query("SELECT pa.propertyID, pa.propertyName,'completed' as pstatus,SUM(f.cash) as total_cash, SUM(f.debt) as total_debt, SUM(p.summary) as total_summary
+            FROM Property_AssignTo pa
+            JOIN FinancialStatements_Has f ON pa.propertyID = f.propertyID
+            JOIN prepared p ON f.statementID = p.statementID
+            WHERE 
+                NOT EXISTS (
+                    SELECT 1
+                    FROM prepared p2
+                    JOIN FinancialStatements_Has f2 ON p2.statementID = f2.statementID
+                    WHERE f2.propertyID = pa.propertyID
+                    AND p2.pstatus != 'completed'
+                )
+            GROUP BY 
+                pa.propertyID, 
+                pa.propertyName, 
+                pstatus
+            ORDER BY pa.propertyID");
     $avgsum = $conn->query("SELECT AVG(prepared.summary) FROM prepared");
     $aggStatmentsA = $conn->query("SELECT pa.propertyID, pa.propertyName, f.cash, f.debt, p.summary, p.pstatus
-        FROM Property_AssignTo pa 
-        JOIN FinancialStatements_Has f ON pa.propertyID = f.propertyID
-        JOIN prepared p ON f.statementID = p.statementID
-        WHERE p.summary < (SELECT AVG(summary) FROM prepared)
-        ORDER BY pa.propertyID");
+            FROM Property_AssignTo pa 
+            JOIN FinancialStatements_Has f ON pa.propertyID = f.propertyID
+            JOIN prepared p ON f.statementID = p.statementID
+            WHERE p.summary < (SELECT AVG(summary) FROM prepared)
+            ORDER BY pa.propertyID");
     $aggStatmentsN = $conn->query("SELECT pa.propertyID, pa.propertyName, f.cash, f.debt, p.summary, p.pstatus
-        FROM Property_AssignTo pa 
-        JOIN FinancialStatements_Has f ON pa.propertyID = f.propertyID
-        JOIN prepared p ON f.statementID = p.statementID
-        WHERE pa.propertyID IN (
-            SELECT f2.propertyID 
-            FROM prepared p2
-            JOIN FinancialStatements_Has f2 ON p2.statementID = f2.statementID
-            WHERE p2.summary < 0
-        )
-        ORDER BY pa.propertyID");
+            FROM Property_AssignTo pa 
+            JOIN FinancialStatements_Has f ON pa.propertyID = f.propertyID
+            JOIN prepared p ON f.statementID = p.statementID
+            WHERE pa.propertyID IN (
+                SELECT f2.propertyID 
+                FROM prepared p2
+                JOIN FinancialStatements_Has f2 ON p2.statementID = f2.statementID
+                WHERE p2.summary < 0
+            )
+            ORDER BY pa.propertyID");
     $aggEvents = $conn->query("SELECT RepairEvent_Undergoes.propertyID, AVG(RepairEvent_Undergoes.cost), AVG(Arrange.budget), p.propertyName, AVG(Arrange.budget) - AVG(RepairEvent_Undergoes.cost) AS diff
-        FROM RepairEvent_Undergoes, Property_AssignTo p, Arrange
-        WHERE p.propertyID = RepairEvent_Undergoes.propertyID AND Arrange.propertyID = RepairEvent_Undergoes.propertyID
-        GROUP BY RepairEvent_Undergoes.propertyID
-        HAVING AVG(RepairEvent_Undergoes.cost) > 
-        (SELECT AVG(Arrange.budget)
-            FROM Arrange
-            WHERE Arrange.propertyID = RepairEvent_Undergoes.propertyID
-            GROUP BY propertyID)
-        ORDER BY RepairEvent_Undergoes.propertyID");
-    $aggEventsM = $conn->query("SELECT Temp.id, Temp.countn, Temp.bud, p.propertyName
-        FROM (SELECT a.propertyID AS id, COUNT(a.eventNum) AS countn, AVG(a.budget) AS bud
-                FROM Arrange a
-                GROUP BY id
-                HAVING COUNT(a.eventNum) > 1) AS Temp, Property_AssignTo p
-        WHERE Temp.id = p.propertyID
-        ORDER BY Temp.countn DESC");
+            FROM RepairEvent_Undergoes, Property_AssignTo p, Arrange
+            WHERE p.propertyID = RepairEvent_Undergoes.propertyID AND Arrange.propertyID = RepairEvent_Undergoes.propertyID
+            GROUP BY RepairEvent_Undergoes.propertyID
+            HAVING AVG(RepairEvent_Undergoes.cost) > 
+            (SELECT AVG(Arrange.budget)
+                FROM Arrange
+                WHERE Arrange.propertyID = RepairEvent_Undergoes.propertyID
+                GROUP BY propertyID)
+            ORDER BY RepairEvent_Undergoes.propertyID");
+        $aggEventsM = $conn->query("SELECT Temp.id, Temp.countn, Temp.bud, p.propertyName
+            FROM (SELECT a.propertyID AS id, COUNT(a.eventNum) AS countn, AVG(a.budget) AS bud
+                    FROM Arrange a
+                    GROUP BY id
+                    HAVING COUNT(a.eventNum) > 1) AS Temp, Property_AssignTo p
+            WHERE Temp.id = p.propertyID
+            ORDER BY Temp.countn DESC");
     $aggEventA = $conn->query("SELECT p.propertyName, p.propertyID, AVG(r.cost), AVG(a.budget), AVG(a.budget) - AVG(r.cost) AS diff 
-        FROM Property_AssignTo p, RepairEvent_Undergoes r, Arrange a
-        WHERE p.propertyID = r.propertyID AND p.propertyID = a.propertyID AND 
-        NOT EXISTS (SELECT * FROM RepairEvent_Undergoes r
-            WHERE p.propertyID = r.propertyID AND 
-            EXISTS(SELECT a.propertyID FROM Arrange a
-                WHERE a.propertyID = r.propertyID AND p.propertyID = a.propertyID AND a.astatus != 'completed')) 
-        GROUP BY p.propertyID
-        ")
+            FROM Property_AssignTo p, RepairEvent_Undergoes r, Arrange a
+            WHERE p.propertyID = r.propertyID AND p.propertyID = a.propertyID AND 
+            NOT EXISTS (SELECT * FROM RepairEvent_Undergoes r
+                WHERE p.propertyID = r.propertyID AND 
+                EXISTS(SELECT a.propertyID FROM Arrange a
+                    WHERE a.propertyID = r.propertyID AND p.propertyID = a.propertyID AND a.astatus != 'completed')) 
+            GROUP BY p.propertyID");
 
     ?>
 
@@ -798,7 +788,7 @@ function togglePropertyFields() {
 </body>
 
 <?php
-include("../display/footer.php");
+include($_SERVER['DOCUMENT_ROOT'] . "/strata/display/footer.php");
 ?>
 
 </html>

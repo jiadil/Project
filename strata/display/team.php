@@ -69,5 +69,5 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/js/bootstrap.min.js" integrity="sha384-oesi62hOLfzrys4LxRF63OJCXdXDipiYWBnvTl9Y9/TRlw5xlKIEHpNyvvDShgf/" crossorigin="anonymous"></script>
 </body>
 
-<?php include("../display/footer.php"); ?>
+<?php include($_SERVER['DOCUMENT_ROOT'] . "/strata/display/footer.php"); ?>
 </html>

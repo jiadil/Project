@@ -1,22 +1,26 @@
 <?php
+// Ensure no output is sent before session starts
+ob_start();
 session_start();
-include("../../connect.php");
 
-// Get form data
-$ownerID = $_POST['ownerID'];
-$passkey = $_POST['passkey'];
+// Include database connection
+include($_SERVER['DOCUMENT_ROOT'] . "/strata/connect.php");
 
-// Validate inputs
-if (empty($ownerID) || empty($passkey)) {
+// Ensure OpenCon() exists
+if (!function_exists('OpenCon')) {
+    die("<p style='color: red;'>❌ ERROR: Database connection function `OpenCon()` is missing. Check `connect.php`.</p>");
+}
+
+// Validate form inputs
+if (!isset($_POST['ownerID']) || !ctype_digit($_POST['ownerID']) || empty($_POST['passkey'])) {
     $_SESSION['owner_login_error'] = "Both Owner ID and Passkey are required.";
     header("Location: owner-login.php");
     exit();
 }
 
-// For security, sanitize the owner ID (assuming it's a number)
-$ownerID = filter_var($ownerID, FILTER_SANITIZE_NUMBER_INT);
-
-// Connect to database
+// Sanitize and connect to DB
+$ownerID = (int) $_POST['ownerID'];
+$passkey = $_POST['passkey'];
 $conn = OpenCon();
 
 // Check if owner exists
@@ -26,31 +30,31 @@ $checkOwner->execute();
 $result = $checkOwner->get_result();
 
 if ($result->num_rows === 0) {
-    // Owner not found
     $_SESSION['owner_login_error'] = "Owner ID not found.";
     header("Location: owner-login.php");
     CloseCon($conn);
     exit();
 }
 
-// For this demo, we'll use a simple passkey check (in a real app, you'd use hashed passwords)
+// Check Passkey (this should be hashed in production!)
 if ($passkey === "000") {
-    // Authentication successful
     $ownerData = $result->fetch_assoc();
-    
+
     // Set session variables
     $_SESSION['owner_logged_in'] = true;
     $_SESSION['owner_id'] = $ownerID;
     $_SESSION['owner_name'] = $ownerData['name'];
-    
-    // Redirect to owner viewer page
+
+    // Redirect to owner portal
     header("Location: owner-viewer.php");
+    exit();
 } else {
-    // Invalid passkey
     $_SESSION['owner_login_error'] = "Invalid passkey.";
     header("Location: owner-login.php");
+    exit();
 }
 
+// Close connection
 CloseCon($conn);
-exit();
+ob_end_flush();
 ?>

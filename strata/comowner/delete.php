@@ -12,7 +12,7 @@
     <div class="mb-3 mt-5 col-md-6 offset-md-3">
 
     <?php
-    include '../connect.php';
+    include($_SERVER['DOCUMENT_ROOT'] . "/strata/connect.php");
     $id = $_GET['registerID']; 
     $conn = OpenCon();
 

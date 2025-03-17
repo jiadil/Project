@@ -1,3 +1,7 @@
+<?php
+session_start();
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -12,10 +16,7 @@
         <div class="mb-3 mt-5 col-md-6 offset-md-3">
 
             <?php
-            error_reporting(E_ALL);
-            ini_set('display_errors', 1);
 
-            session_start();
 
             // Check if staff is logged in
             if (!isset($_SESSION['staff_logged_in']) || $_SESSION['staff_logged_in'] !== true) {
@@ -38,7 +39,7 @@
                 exit();
             }
 
-            include '../../connect.php';
+            include($_SERVER['DOCUMENT_ROOT'] . "/strata/connect.php");
             $sinNum = $_POST['sinNum'];
             $newName = $_POST['newname'];
             $newPhone = $_POST['newphone'];

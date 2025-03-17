@@ -1,6 +1,5 @@
 <?php
 session_start();
-include("../../connect.php");
 
 // Get form data
 $sinNum = $_POST['sinNum'];
@@ -8,7 +7,7 @@ $passkey = $_POST['passkey'];
 
 // Validate inputs
 if (empty($sinNum) || empty($passkey)) {
-    $_SESSION['staff_login_error'] = "Both SIN Number and Password are required.";
+    $_SESSION['staff_login_error'] = "Both SSN Number and Password are required.";
     header("Location: staff-login.php");
     exit();
 }
@@ -17,6 +16,7 @@ if (empty($sinNum) || empty($passkey)) {
 $sinNum = filter_var($sinNum, FILTER_SANITIZE_NUMBER_INT);
 
 // Connect to database
+include($_SERVER['DOCUMENT_ROOT'] . "/strata/connect.php");
 $conn = OpenCon();
 
 // Check if staff exists
@@ -27,7 +27,7 @@ $result = $checkStaff->get_result();
 
 if ($result->num_rows === 0) {
     // Staff not found
-    $_SESSION['staff_login_error'] = "SIN Number not found.";
+    $_SESSION['staff_login_error'] = "SSN Number not found.";
     header("Location: staff-login.php");
     CloseCon($conn);
     exit();

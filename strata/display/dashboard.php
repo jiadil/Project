@@ -26,29 +26,26 @@ $username = $_SESSION['username'];
 <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#">Strata Management System</a>
+            <a class="navbar-brand" href="/strata/logout.php">Home</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
-                    <?php if ($role === 'owner'): ?>
-                        <li class="nav-item">
+                        <!-- <li class="nav-item">
                             <div class="text-center">
                                 <a class="nav-link" href="logout.php">Home</a>
                             </div>
-                        </li>
-                    <?php else: ?>
+                        </li> -->
                         <li class="nav-item">
                             <span class="nav-link">Welcome, <?php echo htmlspecialchars($username); ?></span>
                         </li>
                         <li class="nav-item">
                             <div class="text-center">
-                                <a class="nav-link" href="logout.php">Logout</a>
+                                <a class="nav-link" href="/strata/logout.php">Logout</a>
                             </div>
                             
                         </li>
-                    <?php endif; ?>
 
                 </ul>
             </div>

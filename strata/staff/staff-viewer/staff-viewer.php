@@ -1,3 +1,61 @@
+<?php
+session_start();
+
+// Check if staff is logged in
+if (!isset($_SESSION['staff_logged_in']) || $_SESSION['staff_logged_in'] !== true) {
+    header("Location: staff-login.php");
+    exit();
+}
+
+// Get staff ID from session
+$sinNum = $_SESSION['staff_id'];
+$staffRole = $_SESSION['staff_role'];
+
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+include($_SERVER['DOCUMENT_ROOT'] . "/strata/connect.php");
+$conn = OpenCon();
+
+// Get staff information
+$staffInfo = $conn->query("SELECT sinNum, phoneNum, name FROM Staff WHERE sinNum = $sinNum");
+$staffData = $staffInfo->fetch_assoc();
+
+// Get role-specific information
+$roleInfo = null;
+if ($staffRole == 'accountant') {
+    $roleQuery = $conn->query("SELECT CPALicenseNum, expirationDate FROM Accountant WHERE sinNum = $sinNum");
+    $roleInfo = $roleQuery->fetch_assoc();
+} elseif ($staffRole == 'contractor') {
+    $roleQuery = $conn->query("SELECT contractorLicenseNum, expirationDate FROM Contractor WHERE sinNum = $sinNum");
+    $roleInfo = $roleQuery->fetch_assoc();
+}
+
+// Get all properties
+$properties = $conn->query("SELECT propertyID, propertyName, location FROM Property_AssignTo ORDER BY propertyID");
+
+// Prepare additional queries that previously were lower in the file
+$statements = null;
+$repairs = null;
+
+if ($staffRole == 'accountant') {
+    // Get financial statements prepared by this accountant only - updated for statementID
+    $statements = $conn->query("SELECT p.statementID, f.propertyID, f.cdate, p.pstatus, p.summary, pa.propertyName 
+                               FROM prepared p
+                               JOIN FinancialStatements_Has f ON p.statementID = f.statementID
+                               JOIN Property_AssignTo pa ON f.propertyID = pa.propertyID
+                               WHERE p.sinNum = $sinNum
+                               ORDER BY f.cdate DESC");
+} elseif ($staffRole == 'contractor') {
+    // Get repair events arranged by this contractor only
+    $repairs = $conn->query("SELECT a.eventNum, a.propertyID, a.astatus, a.budget, r.eventName, p.propertyName
+                             FROM Arrange a
+                             JOIN RepairEvent_Undergoes r ON a.eventNum = r.eventNum AND a.propertyID = r.propertyID
+                             JOIN Property_AssignTo p ON a.propertyID = p.propertyID
+                             WHERE a.sinNum = $sinNum
+                             ORDER BY a.eventNum DESC");
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -10,7 +68,7 @@
 </head>
 
 <nav id="navbar-example2" class="navbar navbar-light bg-light px-3 sticky-top">
-    <a class="navbar-brand" href="/strata/check-connection.php">Home</a>
+    <a class="navbar-brand" href="/strata/logout.php">Home</a>
     <ul class="nav nav-pills">
         <li class="nav-item">
             <a class="nav-link" href="#scrollspyHeading1">My Information</a>
@@ -19,7 +77,6 @@
             <a class="nav-link" href="#scrollspyHeading2">Properties</a>
         </li>
         <?php
-        session_start();
         if ($_SESSION['staff_role'] == 'accountant') {
             echo '<li class="nav-item">
                 <a class="nav-link" href="#scrollspyHeading3">Financial Statements</a>
@@ -37,43 +94,6 @@
 </nav>
 
 <body class="d-flex flex-column">
-
-    <?php
-    error_reporting(E_ALL);
-    ini_set('display_errors', 1);
-
-    // Check if staff is logged in
-    if (!isset($_SESSION['staff_logged_in']) || $_SESSION['staff_logged_in'] !== true) {
-        header("Location: staff-login.php");
-        exit();
-    }
-
-    // Get staff ID from session
-    $sinNum = $_SESSION['staff_id'];
-    $staffRole = $_SESSION['staff_role'];
-
-    include("../../connect.php");
-    $conn = OpenCon();
-
-    // Get staff information
-    $staffInfo = $conn->query("SELECT sinNum, phoneNum, name FROM Staff WHERE sinNum = $sinNum");
-    $staffData = $staffInfo->fetch_assoc();
-
-    // Get role-specific information
-    $roleInfo = null;
-    if ($staffRole == 'accountant') {
-        $roleQuery = $conn->query("SELECT CPALicenseNum, expirationDate FROM Accountant WHERE sinNum = $sinNum");
-        $roleInfo = $roleQuery->fetch_assoc();
-    } elseif ($staffRole == 'contractor') {
-        $roleQuery = $conn->query("SELECT contractorLicenseNum, expirationDate FROM Contractor WHERE sinNum = $sinNum");
-        $roleInfo = $roleQuery->fetch_assoc();
-    }
-
-    // Get all properties
-    $properties = $conn->query("SELECT propertyID, propertyName, location FROM Property_AssignTo ORDER BY propertyID");
-
-    ?>
-
     <div data-bs-spy="scroll" data-bs-target="#navbar-example2" data-bs-offset="0" class="scrollspy-example container" tabindex="0">
         <div class="row mx-auto mt-5 mb-5">
             <h4 id="scrollspyHeading1">My Information</h4>
@@ -83,7 +103,7 @@
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-6">
-                                <p><strong>SIN Number:</strong> <?php echo $staffData["sinNum"]; ?></p>
+                                <p><strong>SSN Number:</strong> <?php echo $staffData["sinNum"]; ?></p>
                                 <p><strong>Name:</strong> <?php echo $staffData["name"]; ?></p>
                                 <p><strong>Phone Number:</strong> <?php echo $staffData["phoneNum"]; ?></p>
                             </div>
@@ -147,20 +167,10 @@
                 <?php endif; ?>
             </div>
 
-                            <?php if ($staffRole == 'accountant'): ?>
+            <?php if ($staffRole == 'accountant'): ?>
                 <h4 id="scrollspyHeading3">My Financial Statements</h4>
                 <div class="container-fluid mt-4 mb-5">
-                    <?php
-                    // Get financial statements prepared by this accountant only - updated for statementID
-                    $statements = $conn->query("SELECT p.statementID, f.propertyID, f.cdate, p.pstatus, p.summary, pa.propertyName 
-                                               FROM prepared p
-                                               JOIN FinancialStatements_Has f ON p.statementID = f.statementID
-                                               JOIN Property_AssignTo pa ON f.propertyID = pa.propertyID
-                                               WHERE p.sinNum = $sinNum
-                                               ORDER BY f.cdate DESC");
-                    
-                    if ($statements->num_rows > 0):
-                    ?>
+                    <?php if ($statements && $statements->num_rows > 0): ?>
                     <table class="table table-hover">
                         <thead class="table-light">
                             <tr>
@@ -194,20 +204,10 @@
                     </div>
                     <?php endif; ?>
                 </div>
-                            <?php elseif ($staffRole == 'contractor'): ?>
+            <?php elseif ($staffRole == 'contractor'): ?>
                 <h4 id="scrollspyHeading3">My Repair Events</h4>
                 <div class="container-fluid mt-4 mb-5">
-                    <?php
-                    // Get repair events arranged by this contractor only
-                    $repairs = $conn->query("SELECT a.eventNum, a.propertyID, a.astatus, a.budget, r.eventName, p.propertyName
-                                             FROM Arrange a
-                                             JOIN RepairEvent_Undergoes r ON a.eventNum = r.eventNum AND a.propertyID = r.propertyID
-                                             JOIN Property_AssignTo p ON a.propertyID = p.propertyID
-                                             WHERE a.sinNum = $sinNum
-                                             ORDER BY a.eventNum DESC");
-                    
-                    if ($repairs->num_rows > 0):
-                    ?>
+                    <?php if ($repairs && $repairs->num_rows > 0): ?>
                     <table class="table table-hover">
                         <thead class="table-light">
                             <tr>
@@ -262,7 +262,7 @@
 </body>
 
 <?php
-include("../../display/footer.php");
+include($_SERVER['DOCUMENT_ROOT'] . "/strata/display/footer.php");
 CloseCon($conn);
 ?>
 

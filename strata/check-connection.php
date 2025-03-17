@@ -1,3 +1,24 @@
+<?php
+require_once('connect.php');
+
+// Check for login error messages
+if (isset($_SESSION['login_error'])) {
+    $error_message = $_SESSION['login_error'];
+    echo '<div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <strong>Login Failed!</strong> ' . $error_message . '
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>';
+    
+    // Clear the error message
+    unset($_SESSION['login_error']);
+}
+
+// Check database connection
+$conn = OpenCon();
+CloseCon($conn);
+
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -12,27 +33,10 @@
 
 <body class="d-flex flex-column vh-100">
   <?php
-  if (session_status() === PHP_SESSION_NONE) {
-      session_start();
-  }
+  include($_SERVER['DOCUMENT_ROOT'] . "/strata/display/navbar.php");
+  include($_SERVER['DOCUMENT_ROOT'] . "/strata/display/body.php");
+  include($_SERVER['DOCUMENT_ROOT'] . "/strata/display/footer.php");
 
-  // Check for login error messages
-  if (isset($_SESSION['login_error'])) {
-      $error_message = $_SESSION['login_error'];
-      echo '<div class="alert alert-danger alert-dismissible fade show" role="alert">
-              <strong>Login Failed!</strong> ' . $error_message . '
-              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>';
-      
-      // Clear the error message
-      unset($_SESSION['login_error']);
-  }
-  ?>
-
-  <?php
-  include("display/navbar.php");
-  include("display/body.php");
-  include("display/footer.php");
   ?>
 
 
